@@ -1,255 +1,509 @@
-<!DOCTYPE html>
-<html lang="de">
-<head>
-<meta charset="UTF-8">
-<title>Netherite Casino</title>
 
 <style>
-body{background:#111;color:#f0e8d0;font-family:monospace;margin:0}
-button{cursor:pointer}
-input,select{font-family:monospace}
+@import url('https://fonts.googleapis.com/css2?family=VT323&family=Press+Start+2P&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#111;--sur:#1e1e1e;--sur2:#2a2a2a;--bor:#3a3a3a;
+  --gold:#ffd700;--gold2:#c8a800;--nth:#7a6b8a;--nth2:#4a3e5a;
+  --tx:#f0e8d0;--mu:#888;--gr:#4caf50;--re:#e53935;--pu:#9c27b0;
+  --cl-red:#e53935;--cl-black:#222;
+}
+#app{font-family:'VT323',monospace;background:var(--bg);color:var(--tx);min-height:800px;border-radius:8px;overflow:hidden;border:2px solid var(--bor);font-size:18px}
+.hdr{background:var(--nth2);border-bottom:3px solid var(--gold);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.logo{font-family:'Press Start 2P',monospace;font-size:10px;color:var(--gold);line-height:1.5}
+.nav{display:flex;gap:5px;flex-wrap:wrap}
+.nav button{font-family:'VT323',monospace;font-size:16px;padding:4px 11px;border:2px solid var(--bor);background:var(--sur);color:var(--mu);cursor:pointer;border-radius:3px;transition:.1s}
+.nav button.on,.nav button:hover{background:var(--gold2);color:#000;border-color:var(--gold)}
+.wbar{background:var(--sur);border-bottom:2px solid var(--bor);padding:7px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.wbar input{font-family:'VT323',monospace;font-size:16px;background:var(--bg);border:2px solid var(--bor);color:var(--tx);padding:3px 7px;border-radius:3px;width:130px}
+.wbar input:focus{outline:none;border-color:var(--gold)}
+.badge{display:inline-flex;align-items:center;gap:5px;background:var(--nth2);border:2px solid var(--gold);border-radius:4px;padding:3px 9px;font-size:20px;color:var(--gold)}
+.body{padding:16px}
+.pg{display:none}.pg.on{display:block}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:10px;margin-bottom:16px}
+.gcard{background:var(--sur);border:2px solid var(--bor);border-radius:6px;padding:14px;text-align:center}
+.gcard h3{color:var(--gold);font-size:20px;margin-bottom:6px}
+.gcard p{color:var(--mu);font-size:14px;margin-bottom:10px;line-height:1.3}
+.bigico{font-size:46px;margin-bottom:6px;display:block}
+.btn{font-family:'VT323',monospace;font-size:18px;padding:5px 14px;background:var(--gold2);color:#000;border:2px solid var(--gold);border-radius:3px;cursor:pointer;transition:.1s}
+.btn:hover{background:var(--gold);transform:scale(1.03)}
+.btn:active{transform:scale(.97)}
+.btn.gr{background:var(--gr);color:#fff;border-color:#80e080}
+.btn.re{background:var(--re);color:#fff;border-color:#ff8080}
+.btn.pu{background:var(--pu);color:#fff;border-color:#cc88ee}
+.btn.sm{font-size:15px;padding:3px 10px}
+.ga{background:var(--sur);border:2px solid var(--bor);border-radius:6px;padding:16px;margin-bottom:14px}
+.ga h2{color:var(--gold);font-size:22px;margin-bottom:14px;border-bottom:1px solid var(--bor);padding-bottom:7px}
+.brow{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.brow label{color:var(--mu);min-width:75px}
+.brow input{font-family:'VT323',monospace;font-size:18px;background:var(--bg);border:2px solid var(--bor);color:var(--tx);padding:3px 7px;border-radius:3px;width:85px}
+.brow input:focus{outline:none;border-color:var(--gold)}
+.res{background:var(--bg);border:2px solid var(--bor);border-radius:4px;padding:10px 14px;margin-top:10px;font-size:20px;min-height:44px;text-align:center}
+.res.win{border-color:var(--gr);color:var(--gr)}
+.res.lose{border-color:var(--re);color:var(--re)}
+.res.push{border-color:var(--gold);color:var(--gold)}
+.hist{background:var(--sur);border:2px solid var(--bor);border-radius:6px;padding:10px 14px;max-height:160px;overflow-y:auto}
+.hist h3{color:var(--gold);font-size:17px;margin-bottom:7px}
+.hi{font-size:14px;color:var(--mu);padding:2px 0;border-bottom:1px solid var(--bor);display:flex;justify-content:space-between}
+.hi .wt{color:var(--gr)}.hi .lt{color:var(--re)}
+.msg{padding:7px 10px;border-radius:4px;margin-top:8px;font-size:15px}
+.msg.ok{background:#1a3a1a;border:1px solid var(--gr);color:var(--gr)}
+.msg.err{background:#3a1a1a;border:1px solid var(--re);color:var(--re)}
+.adgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:500px){.adgrid{grid-template-columns:1fr}}
+.adform{display:grid;gap:8px}
+.adform input,.adform select{font-family:'VT323',monospace;font-size:17px;background:var(--bg);border:2px solid var(--bor);color:var(--tx);padding:5px 8px;border-radius:3px;width:100%}
+.adform input:focus,.adform select:focus{outline:none;border-color:var(--gold)}
+.plrow{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:var(--sur);border:1px solid var(--bor);border-radius:4px;margin-bottom:5px;gap:6px;flex-wrap:wrap}
+.lbrow{display:flex;align-items:center;gap:10px;padding:7px 10px;background:var(--sur);border:1px solid var(--bor);border-radius:4px;margin-bottom:5px}
+.rnk{color:var(--gold);font-size:20px;min-width:28px}
+.sec{font-size:21px;color:var(--gold);margin-bottom:10px;border-bottom:1px solid var(--bor);padding-bottom:5px}
+.pwd{text-align:center;padding:36px 16px}
+.pwd h2{color:var(--gold);font-size:22px;margin-bottom:16px}
+.pwd input{font-family:'VT323',monospace;font-size:19px;background:var(--bg);border:2px solid var(--gold);color:var(--tx);padding:7px 12px;border-radius:4px;width:190px;text-align:center;letter-spacing:4px}
 
-/* minimal styling fix */
-.res.win{color:#4caf50}
-.res.lose{color:#e53935}
-.res.push{color:#ffd700}
+/* CARDS */
+.hand{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0;min-height:80px}
+.card{width:52px;height:74px;background:#fff;border:2px solid #ccc;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-direction:column;color:#111;font-weight:bold;line-height:1.1;position:relative}
+.card.red-s{color:var(--cl-red)}
+.card.back{background:var(--nth2);border-color:var(--gold);color:var(--gold);font-size:28px}
+.card-val{font-size:13px;position:absolute;top:2px;left:4px;font-family:monospace}
+.hand-lbl{font-size:15px;color:var(--mu);margin-bottom:4px}
+.hand-score{font-size:18px;color:var(--gold);margin-left:8px}
+.bj-actions{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+
+/* ROULETTE */
+.rw-table{display:flex;gap:12px;flex-wrap:wrap}
+.rw-left{flex:1;min-width:200px}
+.rw-right{width:220px}
+.rw-wheel{width:200px;height:200px;border-radius:50%;border:4px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:36px;background:var(--sur2);margin:0 auto 10px;transition:transform .1s}
+.rw-spinning{animation:rws 3s cubic-bezier(.17,.67,.29,.99) forwards}
+@keyframes rws{0%{transform:rotate(0)}100%{transform:rotate(1800deg)}}
+.rnums{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;margin-bottom:6px}
+.rnum-btn{font-family:'VT323',monospace;font-size:16px;padding:4px 2px;border:1px solid var(--bor);border-radius:3px;cursor:pointer;text-align:center;background:var(--sur2);color:var(--tx);transition:.1s}
+.rnum-btn:hover{opacity:.8;transform:scale(1.05)}
+.rnum-btn.sel{outline:3px solid var(--gold)}
+.rnum-btn.rc-red{background:#b71c1c;color:#fff}
+.rnum-btn.rc-black{background:#222;color:#fff;border-color:#555}
+.rnum-btn.rc-green{background:#1b5e20;color:#fff}
+.rbets{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:8px}
+.rbet-btn{font-family:'VT323',monospace;font-size:15px;padding:5px 4px;border:2px solid var(--bor);border-radius:3px;cursor:pointer;background:var(--sur2);color:var(--tx);text-align:center;transition:.1s}
+.rbet-btn:hover{border-color:var(--gold);color:var(--gold)}
+.rbet-btn.sel{border-color:var(--gold);background:var(--nth2);color:var(--gold)}
+.rbet-lbl{font-size:13px;color:var(--mu);margin-bottom:4px}
 </style>
-</head>
 
-<body>
+<div id="app">
+  <div class="hdr">
+    <div class="logo">⛏ NETHERITE<br>CASINO</div>
+    <div class="nav">
+      <button class="on" onclick="nav('games',this)">🎮 Games</button>
+      <button onclick="nav('lb',this)">🏆 Bestenliste</button>
+      <button onclick="nav('admin',this)">👑 Admin</button>
+    </div>
+  </div>
+  <div class="wbar">
+    <span style="color:var(--mu)">Spieler:</span>
+    <input type="text" id="pname" placeholder="Dein IGN..." oninput="updW()">
+    <div class="badge">⬛ <span id="wdis">0</span> <span style="font-size:14px;color:var(--mu)">NC</span></div>
+  </div>
 
-<div style="padding:10px;border-bottom:2px solid #333">
-  <b>⛏ Netherite Casino</b><br>
+  <!-- GAMES -->
+  <div id="pg-games" class="pg on body" style="padding:14px">
+    <div id="gsel">
+      <div class="grid">
+        <div class="gcard"><span class="bigico">🪙</span><h3>Coin Flip</h3><p>Kopf oder Zahl? 2x Einsatz!</p><button class="btn" onclick="og('cf')">Spielen ▶</button></div>
+        <div class="gcard"><span class="bigico">🎲</span><h3>Dice Roll</h3><p>Würfle höher! Bis zu 5x!</p><button class="btn" onclick="og('dice')">Spielen ▶</button></div>
+        <div class="gcard"><span class="bigico">🎰</span><h3>Slots</h3><p>3x Jackpot = 10x Gewinn!</p><button class="btn" onclick="og('slots')">Spielen ▶</button></div>
+        <div class="gcard"><span class="bigico">🃏</span><h3>Blackjack</h3><p>Schlag den Dealer! Näher an 21 gewinnt!</p><button class="btn" onclick="og('bj')">Spielen ▶</button></div>
+        <div class="gcard"><span class="bigico">🎡</span><h3>Roulette</h3><p>Setze auf Zahl, Farbe oder Gruppe!</p><button class="btn" onclick="og('rou')">Spielen ▶</button></div>
+      </div>
+      <div class="hist"><h3>📜 Letzte Runden</h3><div id="hlist"><span style="color:var(--mu);font-size:14px">Noch keine Runden...</span></div></div>
+    </div>
 
-  Spieler:
-  <input id="pname" oninput="updW()">
+    <!-- COIN FLIP -->
+    <div id="g-cf" style="display:none">
+      <button class="btn sm" onclick="cg()" style="margin-bottom:10px">◀ Zurück</button>
+      <div class="ga"><h2>🪙 Coin Flip</h2>
+        <div class="brow"><label>Einsatz:</label><input type="number" id="cfb" placeholder="NC" min="1"></div>
+        <div id="coin" style="width:80px;height:80px;background:var(--nth2);border:4px solid var(--gold);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:42px;margin:10px auto">🪙</div>
+        <div style="display:flex;gap:10px;justify-content:center;margin:10px 0">
+          <button class="btn gr" onclick="pcf('h')">KOPF 🦅</button>
+          <button class="btn re" onclick="pcf('t')">ZAHL 🏔</button>
+        </div>
+        <div class="res" id="cfr">Kopf oder Zahl wählen!</div>
+      </div>
+    </div>
 
-  <span> | Balance: ⬛ <span id="wdis">0</span></span>
-</div>
+    <!-- DICE -->
+    <div id="g-dice" style="display:none">
+      <button class="btn sm" onclick="cg()" style="margin-bottom:10px">◀ Zurück</button>
+      <div class="ga"><h2>🎲 Dice Roll</h2>
+        <div class="brow"><label>Einsatz:</label><input type="number" id="dcb" placeholder="NC" min="1"></div>
+        <div style="display:flex;gap:10px;justify-content:center;margin:12px 0;align-items:center">
+          <div id="dp" style="width:58px;height:58px;background:var(--sur2);border:3px solid var(--nth);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:34px">?</div>
+          <span style="color:var(--mu);font-size:18px">vs</span>
+          <div id="dd" style="width:58px;height:58px;background:var(--sur2);border:3px solid var(--nth);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:34px">?</div>
+        </div>
+        <div style="text-align:center"><button class="btn pu" onclick="pdice()">🎲 WÜRFELN</button></div>
+        <div class="res" id="dcr">Drück Würfeln!</div>
+      </div>
+    </div>
 
-<div style="padding:10px">
-<button onclick="addAccount()">Account erstellen/laded</button>
-</div>
+    <!-- SLOTS -->
+    <div id="g-slots" style="display:none">
+      <button class="btn sm" onclick="cg()" style="margin-bottom:10px">◀ Zurück</button>
+      <div class="ga"><h2>🎰 Slots</h2>
+        <div class="brow"><label>Einsatz:</label><input type="number" id="slb" placeholder="NC" min="1"></div>
+        <div style="display:flex;gap:6px;justify-content:center;margin:12px 0">
+          <div id="r1" style="width:68px;height:68px;background:var(--sur2);border:3px solid var(--nth);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:38px">❓</div>
+          <div id="r2" style="width:68px;height:68px;background:var(--sur2);border:3px solid var(--nth);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:38px">❓</div>
+          <div id="r3" style="width:68px;height:68px;background:var(--sur2);border:3px solid var(--nth);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:38px">❓</div>
+        </div>
+        <div style="text-align:center;font-size:13px;color:var(--mu);margin-bottom:8px">3x💎=10x | 3x⚔=5x | 3x🔥=3x | andere 3x=2x</div>
+        <div style="text-align:center"><button class="btn" onclick="pslots()">🎰 DREHEN!</button></div>
+        <div class="res" id="slr">Viel Glück!</div>
+      </div>
+    </div>
 
-<hr>
+    <!-- BLACKJACK -->
+    <div id="g-bj" style="display:none">
+      <button class="btn sm" onclick="cg()" style="margin-bottom:10px">◀ Zurück</button>
+      <div class="ga"><h2>🃏 Blackjack</h2>
+        <div class="brow"><label>Einsatz:</label><input type="number" id="bjb" placeholder="NC" min="1"><button class="btn gr" onclick="bjstart()" style="margin-left:6px">Deal ▶</button></div>
+        <div id="bj-area" style="display:none">
+          <div style="display:flex;gap:6px;align-items:center;margin-bottom:4px"><span class="hand-lbl">Dealer:</span><span class="hand-score" id="bj-dscore"></span></div>
+          <div class="hand" id="bj-dhand"></div>
+          <div style="display:flex;gap:6px;align-items:center;margin-bottom:4px"><span class="hand-lbl">Du:</span><span class="hand-score" id="bj-pscore"></span></div>
+          <div class="hand" id="bj-phand"></div>
+          <div class="bj-actions" id="bj-acts">
+            <button class="btn gr" onclick="bjhit()">Karte ziehen (Hit)</button>
+            <button class="btn re" onclick="bjstand()">Stehen (Stand)</button>
+            <button class="btn" onclick="bjdouble()" id="bj-dbl">Verdoppeln (2x)</button>
+          </div>
+          <div class="res" id="bjr"></div>
+        </div>
+        <div class="res" id="bjr0">Setze einen Einsatz und klick Deal!</div>
+      </div>
+    </div>
 
-<!-- ADMIN -->
-<div style="padding:10px">
-<h3>👑 Admin</h3>
-<input id="adminpw" placeholder="pw">
-<button onclick="login()">Login</button>
+    <!-- ROULETTE -->
+    <div id="g-rou" style="display:none">
+      <button class="btn sm" onclick="cg()" style="margin-bottom:10px">◀ Zurück</button>
+      <div class="ga"><h2>🎡 Roulette</h2>
+        <div class="rw-table">
+          <div class="rw-left">
+            <div class="rbet-lbl">Einsatz-Art wählen:</div>
+            <div class="rbets">
+              <div class="rbet-btn" id="rb-rot" onclick="selBet('rot','2x')">🔴 Rot (2x)</div>
+              <div class="rbet-btn" id="rb-schw" onclick="selBet('schw','2x')">⚫ Schwarz (2x)</div>
+              <div class="rbet-btn" id="rb-ger" onclick="selBet('ger','2x')">Gerade (2x)</div>
+              <div class="rbet-btn" id="rb-ung" onclick="selBet('ung','2x')">Ungerade (2x)</div>
+              <div class="rbet-btn" id="rb-low" onclick="selBet('low','2x')">1–18 (2x)</div>
+              <div class="rbet-btn" id="rb-high" onclick="selBet('high','2x')">19–36 (2x)</div>
+              <div class="rbet-btn" id="rb-doz1" onclick="selBet('doz1','3x')">1. Dutz. (3x)</div>
+              <div class="rbet-btn" id="rb-doz2" onclick="selBet('doz2','3x')">2. Dutz. (3x)</div>
+              <div class="rbet-btn" id="rb-doz3" onclick="selBet('doz3','3x')">3. Dutz. (3x)</div>
+              <div class="rbet-btn" id="rb-num" onclick="selBet('num','36x')">Zahl (36x)</div>
+            </div>
+            <div id="numsel" style="display:none;margin-bottom:8px">
+              <div class="rbet-lbl">Zahl wählen (0–36):</div>
+              <div class="rnums" id="rnumgrid"></div>
+            </div>
+            <div class="brow"><label>Einsatz:</label><input type="number" id="roub" placeholder="NC" min="1"></div>
+            <div style="margin-top:8px"><button class="btn" onclick="prou()">🎡 DREHEN!</button></div>
+            <div class="res" id="rour">Einsatz wählen und drehen!</div>
+          </div>
+          <div class="rw-right">
+            <div id="rouwheel" class="rw-wheel">🎡</div>
+            <div id="rounum" style="text-align:center;font-size:28px;color:var(--gold);min-height:36px"></div>
+            <div id="roubtype" style="text-align:center;font-size:14px;color:var(--mu);margin-top:4px">Gewählt: —</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-<div id="admin" style="display:none;margin-top:10px">
-  <h4>Coins ändern</h4>
+  <!-- LEADERBOARD -->
+  <div id="pg-lb" class="pg" style="padding:14px">
+    <div class="sec">🏆 Reichste Spieler</div>
+    <div id="lbcont"></div>
+  </div>
 
-  <input id="apl" placeholder="Player">
-  <input id="aamt" type="number" placeholder="Amount">
-
-  <select id="aact">
-    <option value="add">add</option>
-    <option value="rem">remove</option>
-    <option value="set">set</option>
-  </select>
-
-  <button onclick="adminTx()">OK</button>
-
-  <h4>Accounts</h4>
-  <div id="alist"></div>
-</div>
-</div>
-
-<hr>
-
-<div style="padding:10px">
-<button onclick="coinFlip()">Coinflip (10 bet fix)</button>
-<div id="out"></div>
+  <!-- ADMIN -->
+  <div id="pg-admin" class="pg" style="padding:14px">
+    <div id="alog">
+      <div class="pwd"><h2>👑 Admin Panel</h2>
+        <p style="color:var(--mu);margin-bottom:14px;font-size:15px">Nur für Serverbesitzer!</p>
+        <input type="password" id="apwd" placeholder="••••••" onkeydown="if(event.key==='Enter')alog()">
+        <br><br><button class="btn" onclick="alog()">Einloggen ▶</button>
+        <div id="almsg"></div>
+      </div>
+    </div>
+    <div id="apanel" style="display:none">
+      <div class="adgrid">
+        <div>
+          <div class="sec">💰 Coins vergeben</div>
+          <div class="adform">
+            <input type="text" id="apl" placeholder="Spieler-IGN">
+            <input type="number" id="aamt" placeholder="Anzahl NC">
+            <select id="aact">
+              <option value="add">+ Hinzufügen (Einzahlung)</option>
+              <option value="set">= Setzen</option>
+              <option value="rem">- Abziehen</option>
+            </select>
+            <button class="btn gr" onclick="agive()">✔ Ausführen</button>
+          </div>
+          <div id="amsg"></div>
+        </div>
+        <div>
+          <div class="sec">📋 Alle Spieler</div>
+          <div id="apllist"></div>
+          <button class="btn re sm" style="margin-top:8px" onclick="if(confirm('Wirklich alle löschen?'))clrAll()">🗑 Alle löschen</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
-const ADMIN_PW="admin123";
+const APWD='admin123';
+const SLSYM=['💎','⚔️','🔥','💰','🍎','🧱'];
+const SLMUL={'💎':10,'⚔️':5,'🔥':3};
+const DF=['⚀','⚁','⚂','⚃','⚄','⚅'];
+const SUITS=['♠','♥','♦','♣'];
+const RRED=[1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36];
 
-/* =======================
-   DATA STRUCTURE
-======================= */
+let players={},history=[],adminIn=false;
+let bjDeck=[],bjPhnd=[],bjDhnd=[],bjBet=0,bjGoing=false;
+let rouBetType=null,rouSelNum=null;
 
-let players={};
+function sv(){try{localStorage.setItem('nc2',JSON.stringify(players))}catch(e){}}
+function ld(){try{const d=localStorage.getItem('nc2');if(d)players=JSON.parse(d)}catch(e){}}
+function gp(){return(document.getElementById('pname').value||'').trim()}
+function gb(n){return players[n]||0}
+function sb(n,v){if(!n)return;players[n]=Math.max(0,Math.round(v));sv();updW();rlb();if(adminIn)rapl()}
+function updW(){const p=gp();document.getElementById('wdis').textContent=p?gb(p).toLocaleString():0}
+function nav(p,el){
+  document.querySelectorAll('.pg').forEach(x=>x.classList.remove('on'));
+  document.getElementById('pg-'+p).classList.add('on');
+  document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+  if(p==='lb')rlb();
+  if(p==='admin'&&adminIn)rapl();
+}
+function og(g){
+  document.getElementById('gsel').style.display='none';
+  document.querySelectorAll('[id^="g-"]').forEach(x=>x.style.display='none');
+  document.getElementById('g-'+g).style.display='block';
+  if(g==='bj'){document.getElementById('bj-area').style.display='none';document.getElementById('bjr0').style.display='block';}
+  if(g==='rou')buildRouWheel();
+}
+function cg(){document.querySelectorAll('[id^="g-"]').forEach(x=>x.style.display='none');document.getElementById('gsel').style.display='block'}
+function rp(){return!gp()&&(alert('Bitte zuerst deinen Spielernamen eingeben!'),true)}
+function addH(game,result,amt,won){
+  const p=gp()||'???';
+  history.unshift({p,game,result,amt,won});
+  if(history.length>30)history.pop();
+  rhist();
+}
+function rhist(){
+  const el=document.getElementById('hlist');
+  if(!history.length){el.innerHTML='<span style="color:var(--mu);font-size:14px">Noch keine Runden...</span>';return}
+  el.innerHTML=history.slice(0,12).map(h=>`<div class="hi"><span>${h.p} — ${h.game} — ${h.result}</span><span class="${h.won?'wt':'lt'}">${h.won?'+':'-'}${Math.abs(h.amt)} NC</span></div>`).join('');
+}
+function rlb(){
+  const s=Object.entries(players).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  const m=['🥇','🥈','🥉'];
+  document.getElementById('lbcont').innerHTML=s.length?s.map(([n,b],i)=>`<div class="lbrow"><span class="rnk">${m[i]||'#'+(i+1)}</span><span style="flex:1">${n}</span><span style="color:var(--gold)">⬛ ${b.toLocaleString()} NC</span></div>`).join(''):'<div style="color:var(--mu)">Noch keine Spieler...</div>';
+}
+function alog(){
+  if(document.getElementById('apwd').value===APWD){
+    adminIn=true;document.getElementById('alog').style.display='none';document.getElementById('apanel').style.display='block';rapl();
+  }else{document.getElementById('almsg').innerHTML='<div class="msg err">❌ Falsches Passwort!</div>'}
+}
+function rapl(){
+  const s=Object.entries(players).sort((a,b)=>b[1]-a[1]);
+  document.getElementById('apllist').innerHTML=s.length?s.map(([n,b])=>`<div class="plrow"><span>${n}</span><span style="color:var(--gold)">⬛ ${b.toLocaleString()} NC</span><button class="btn re sm" onclick="delP('${n}')">🗑</button></div>`).join(''):'<div style="color:var(--mu)">Keine Spieler.</div>';
+}
+function delP(n){if(!confirm(n+' löschen?'))return;delete players[n];sv();rapl();rlb();updW()}
+function clrAll(){players={};sv();rapl();rlb();updW()}
+function agive(){
+  const pl=document.getElementById('apl').value.trim();
+  const amt=parseInt(document.getElementById('aamt').value);
+  const act=document.getElementById('aact').value;
+  const msg=document.getElementById('amsg');
+  if(!pl){msg.innerHTML='<div class="msg err">❌ Spieler angeben!</div>';return}
+  if(isNaN(amt)||amt<=0){msg.innerHTML='<div class="msg err">❌ Gültigen Betrag!</div>';return}
+  const cur=gb(pl);
+  if(act==='add')sb(pl,cur+amt);
+  else if(act==='set')sb(pl,amt);
+  else sb(pl,cur-amt);
+  msg.innerHTML=`<div class="msg ok">✔ ${pl} hat jetzt ${gb(pl).toLocaleString()} NC</div>`;
+  document.getElementById('apl').value='';document.getElementById('aamt').value='';
+  rapl();
+}
+function sr(id,txt,cls){const e=document.getElementById(id);e.textContent=txt;e.className='res'+(cls?' '+cls:'')}
 
-function now(){
-  return new Date().toLocaleString();
+/* COIN FLIP */
+function pcf(ch){
+  if(rp())return;
+  const bet=parseInt(document.getElementById('cfb').value),bal=gb(gp());
+  if(isNaN(bet)||bet<=0){sr('cfr','❌ Gültigen Einsatz!');return}
+  if(bet>bal){sr('cfr',`❌ Nur ${bal} NC!`);return}
+  const res=Math.random()<.5?'h':'t',won=res===ch;
+  const coin=document.getElementById('coin');
+  coin.textContent='🔄';
+  setTimeout(()=>{
+    coin.textContent=res==='h'?'🦅':'🏔';
+    const lbl=res==='h'?'KOPF':'ZAHL';
+    if(won){sb(gp(),bal+bet);sr('cfr',`${lbl}! +${bet} NC! 🎉`,'win')}
+    else{sb(gp(),bal-bet);sr('cfr',`${lbl}! -${bet} NC 😢`,'lose')}
+    addH('CoinFlip',lbl,bet,won);
+  },500);
 }
 
-/* =======================
-   ACCOUNT SYSTEM
-======================= */
-
-function getP(name){
-  if(!players[name]){
-    players[name]={
-      bal:0,
-      createdAt:now(),
-      logs:[]
-    };
-  }
-  return players[name];
+/* DICE */
+function pdice(){
+  if(rp())return;
+  const bet=parseInt(document.getElementById('dcb').value),bal=gb(gp());
+  if(isNaN(bet)||bet<=0){sr('dcr','❌ Gültigen Einsatz!');return}
+  if(bet>bal){sr('dcr',`❌ Nur ${bal} NC!`);return}
+  const pr=Math.floor(Math.random()*6)+1,dr=Math.floor(Math.random()*6)+1;
+  document.getElementById('dp').textContent=DF[pr-1];
+  document.getElementById('dd').textContent=DF[dr-1];
+  if(pr>dr){const m=pr===6&&dr===1?5:pr-dr>=3?3:2,g=bet*(m-1);sb(gp(),bal+g);sr('dcr',`${pr} > ${dr}! +${g} NC (${m}x) 🎉`,'win');addH('Dice',`${pr}v${dr}`,g,true)}
+  else if(pr<dr){sb(gp(),bal-bet);sr('dcr',`${pr} < ${dr}! -${bet} NC 😢`,'lose');addH('Dice',`${pr}v${dr}`,bet,false)}
+  else{sr('dcr',`${pr} = ${dr} — Unentschieden!`,'push');addH('Dice',`${pr}v${dr}`,0,null)}
 }
 
-function getBal(name){
-  return getP(name).bal;
+/* SLOTS */
+function pslots(){
+  if(rp())return;
+  const bet=parseInt(document.getElementById('slb').value),bal=gb(gp());
+  if(isNaN(bet)||bet<=0){sr('slr','❌ Gültigen Einsatz!');return}
+  if(bet>bal){sr('slr',`❌ Nur ${bal} NC!`);return}
+  const rs=[1,2,3].map(i=>document.getElementById('r'+i));
+  let t=0,iv=setInterval(()=>{rs.forEach(r=>r.textContent=SLSYM[Math.floor(Math.random()*SLSYM.length)]);t++;if(t>14){clearInterval(iv);const a=SLSYM[Math.floor(Math.random()*SLSYM.length)];const b=Math.random()<.33?a:SLSYM[Math.floor(Math.random()*SLSYM.length)];const c=Math.random()<.22?a:SLSYM[Math.floor(Math.random()*SLSYM.length)];rs[0].textContent=a;rs[1].textContent=b;rs[2].textContent=c;if(a===b&&b===c){const m=SLMUL[a]||2,g=bet*m-bet;sb(gp(),bal+g);sr('slr',`${a}${b}${c} JACKPOT! +${g} NC (${m}x) 🎉`,'win');addH('Slots',`${a}${b}${c}`,g,true)}else{sb(gp(),bal-bet);sr('slr',`${a}${b}${c} — Kein Glück. -${bet} NC 😢`,'lose');addH('Slots',`${a}${b}${c}`,bet,false)}}},75);
 }
 
-function setBal(name,val,reason="system"){
-  let p=getP(name);
-  p.bal=Math.max(0,Math.floor(val));
-
-  log(name,`BAL SET -> ${p.bal} (${reason})`);
-  save();
-  render();
+/* BLACKJACK */
+function mkDeck(){const d=[];for(const s of SUITS)for(let v=1;v<=13;v++)d.push({s,v});return d.sort(()=>Math.random()-.5)}
+function cVal(c){return c.v>=10?10:c.v===1?11:c.v}
+function hVal(h){let s=h.reduce((a,c)=>a+cVal(c),0),ac=h.filter(c=>c.v===1).length;while(s>21&&ac-->0)s-=10;return s}
+function cTxt(c){const f={1:'A',11:'J',12:'Q',13:'K'};return(f[c.v]||c.v)+c.s}
+function isRed(c){return c.s==='♥'||c.s==='♦'}
+function cardEl(c,back=false){const d=document.createElement('div');d.className='card'+(back?' back':isRed(c)?' red-s':'');if(back){d.textContent='⬛'}else{const v=document.createElement('div');v.className='card-val';v.textContent=cTxt(c);d.appendChild(v);d.appendChild(document.createTextNode(c.s))}return d}
+function renderHands(hide){
+  const ph=document.getElementById('bj-phand'),dh=document.getElementById('bj-dhand');
+  ph.innerHTML='';dh.innerHTML='';
+  bjPhnd.forEach(c=>ph.appendChild(cardEl(c)));
+  bjDhnd.forEach((c,i)=>dh.appendChild(i===1&&hide?cardEl(c,true):cardEl(c)));
+  document.getElementById('bj-pscore').textContent=hVal(bjPhnd);
+  document.getElementById('bj-dscore').textContent=hide?hVal([bjDhnd[0]])+'?':hVal(bjDhnd);
+}
+function bjstart(){
+  if(rp())return;
+  const bet=parseInt(document.getElementById('bjb').value),bal=gb(gp());
+  if(isNaN(bet)||bet<=0){sr('bjr0','❌ Gültigen Einsatz!');return}
+  if(bet>bal){sr('bjr0',`❌ Nur ${bal} NC!`);return}
+  bjBet=bet;bjDeck=mkDeck();bjPhnd=[];bjDhnd=[];bjGoing=true;
+  bjPhnd.push(bjDeck.pop(),bjDeck.pop());bjDhnd.push(bjDeck.pop(),bjDeck.pop());
+  document.getElementById('bj-area').style.display='block';
+  document.getElementById('bjr0').style.display='none';
+  document.getElementById('bjr').textContent='';document.getElementById('bjr').className='res';
+  document.getElementById('bj-acts').style.display='flex';
+  document.getElementById('bj-dbl').disabled=false;
+  renderHands(true);
+  if(hVal(bjPhnd)===21)bjEnd('Blackjack! Du gewinnst! 🎉',true,1.5);
+}
+function bjhit(){
+  if(!bjGoing)return;
+  bjPhnd.push(bjDeck.pop());
+  document.getElementById('bj-dbl').disabled=true;
+  renderHands(true);
+  if(hVal(bjPhnd)>21)bjEnd('Bust! Du verlierst! 😢',false);
+  else if(hVal(bjPhnd)===21)bjstand();
+}
+function bjstand(){
+  if(!bjGoing)return;
+  while(hVal(bjDhnd)<17)bjDhnd.push(bjDeck.pop());
+  renderHands(false);
+  const ps=hVal(bjPhnd),ds=hVal(bjDhnd);
+  if(ds>21)bjEnd(`Dealer Bust (${ds})! Du gewinnst! 🎉`,true);
+  else if(ps>ds)bjEnd(`${ps} > ${ds} — Du gewinnst! 🎉`,true);
+  else if(ps<ds)bjEnd(`${ps} < ${ds} — Dealer gewinnt! 😢`,false);
+  else bjEnd(`${ps} = ${ds} — Unentschieden!`,null);
+}
+function bjdouble(){
+  if(!bjGoing)return;
+  const bal=gb(gp());
+  if(bjBet*2>bal){sr('bjr','❌ Nicht genug NC!');return}
+  bjBet*=2;bjPhnd.push(bjDeck.pop());renderHands(true);
+  if(hVal(bjPhnd)>21)bjEnd('Bust! Du verlierst!',false);else bjstand();
+}
+function bjEnd(msg,won,mult=1){
+  bjGoing=false;
+  const bal=gb(gp());
+  document.getElementById('bj-acts').style.display='none';
+  renderHands(false);
+  if(won===true){const g=Math.round(bjBet*mult);sb(gp(),bal+g);sr('bjr',msg+` (+${g} NC)`,'win');addH('Blackjack',msg,g,true)}
+  else if(won===false){sb(gp(),bal-bjBet);sr('bjr',msg+` (-${bjBet} NC)`,'lose');addH('Blackjack',msg,bjBet,false)}
+  else{sr('bjr',msg,'push');addH('Blackjack',msg,0,null)}
+  setTimeout(()=>{document.getElementById('bj-area').style.display='none';document.getElementById('bjr0').style.display='block';document.getElementById('bjr0').textContent='Neue Runde? Einsatz setzen + Deal!'},2800);
 }
 
-function tx(name,delta,reason){
-  let p=getP(name);
-
-  if(Math.abs(delta)>1000000) return; // anti cheat spike
-
-  p.bal=Math.max(0,p.bal+delta);
-
-  log(name,`${delta>0?"+":""}${delta} (${reason})`);
-
-  save();
-  render();
-}
-
-/* =======================
-   LOG SYSTEM
-======================= */
-
-function log(name,msg){
-  let p=getP(name);
-  p.logs.push(`[${now()}] ${msg}`);
-}
-
-/* =======================
-   SAVE / LOAD
-======================= */
-
-function save(){
-  localStorage.setItem("nc",JSON.stringify(players));
-}
-
-function load(){
-  let d=localStorage.getItem("nc");
-  if(d)players=JSON.parse(d);
-}
-
-/* =======================
-   UI
-======================= */
-
-function gp(){
-  return document.getElementById("pname").value.trim();
-}
-
-function updW(){
-  let p=gp();
-  document.getElementById("wdis").innerText=p?getBal(p):0;
-}
-
-function render(){
-  updW();
-  if(adminOn)renderAdmin();
-}
-
-/* =======================
-   ACCOUNT CREATION
-======================= */
-
-function addAccount(){
-  let p=gp();
-  if(!p)return alert("Name eingeben");
-  getP(p);
-  save();
-  render();
-}
-
-/* =======================
-   ADMIN
-======================= */
-
-let adminOn=false;
-
-function login(){
-  if(document.getElementById("adminpw").value===ADMIN_PW){
-    adminOn=true;
-    document.getElementById("admin").style.display="block";
-    renderAdmin();
-  }
-}
-
-function adminTx(){
-  let p=document.getElementById("apl").value;
-  let amt=parseInt(document.getElementById("aamt").value);
-  let act=document.getElementById("aact").value;
-
-  if(!p||isNaN(amt))return;
-
-  if(act==="add")tx(p,amt,"admin");
-  if(act==="rem")tx(p,-amt,"admin");
-  if(act==="set")setBal(p,amt,"admin");
-
-  renderAdmin();
-}
-
-function renderAdmin(){
-  let out=document.getElementById("alist");
-  out.innerHTML="";
-
-  Object.keys(players).forEach(n=>{
-    let p=players[n];
-
-    let div=document.createElement("div");
-    div.style.border="1px solid #333";
-    div.style.margin="5px";
-    div.style.padding="5px";
-
-    div.innerHTML=`
-      <b>${n}</b><br>
-      💰 ${p.bal}<br>
-      🕒 created: ${p.createdAt}<br>
-      📜 logs: ${p.logs.length}
-      <button onclick="alert(players['${n}'].logs.join('\\n'))">view logs</button>
-    `;
-
-    out.appendChild(div);
+/* ROULETTE */
+const ROUCOL=(n)=>n===0?'green':RRED.includes(n)?'red':'black';
+function buildRouWheel(){
+  const g=document.getElementById('rnumgrid');g.innerHTML='';
+  const nums=[0,...Array.from({length:36},(_,i)=>i+1)];
+  nums.forEach(n=>{
+    const b=document.createElement('div');
+    const c=ROUCOL(n);
+    b.className='rnum-btn rc-'+(c==='red'?'red':c==='black'?'black':'green');
+    b.textContent=n;b.dataset.n=n;
+    b.onclick=()=>{rouSelNum=n;document.querySelectorAll('.rnum-btn').forEach(x=>x.classList.remove('sel'));b.classList.add('sel')};
+    g.appendChild(b);
   });
 }
-
-/* =======================
-   GAME (COINFLIP)
-======================= */
-
-function coinFlip(){
-  let p=gp();
-  if(!p)return alert("Name fehlt");
-
-  let bet=10;
-  let win=Math.random()>0.5;
-
-  if(win){
-    tx(p,bet,"coinflip win");
-    document.getElementById("out").innerHTML="WIN +10";
-  }else{
-    tx(p,-bet,"coinflip loss");
-    document.getElementById("out").innerHTML="LOSS -10";
-  }
+function selBet(t,mult){
+  rouBetType=t;
+  document.querySelectorAll('.rbet-btn').forEach(b=>b.classList.remove('sel'));
+  document.getElementById('rb-'+t).classList.add('sel');
+  document.getElementById('numsel').style.display=t==='num'?'block':'none';
+  document.getElementById('roubtype').textContent='Gewählt: '+t.toUpperCase()+' ('+mult+')';
 }
-
-/* =======================
-   INIT
-======================= */
-
-load();
-render();
-
+function prou(){
+  if(rp())return;
+  if(!rouBetType){sr('rour','❌ Einsatz-Art wählen!');return}
+  if(rouBetType==='num'&&rouSelNum===null){sr('rour','❌ Zahl wählen!');return}
+  const bet=parseInt(document.getElementById('roub').value),bal=gb(gp());
+  if(isNaN(bet)||bet<=0){sr('rour','❌ Gültigen Einsatz!');return}
+  if(bet>bal){sr('rour',`❌ Nur ${bal} NC!`);return}
+  const w=document.getElementById('rouwheel');
+  w.classList.add('rw-spinning');
+  document.getElementById('rounum').textContent='';
+  setTimeout(()=>{
+    w.classList.remove('rw-spinning');
+    const spin=Math.floor(Math.random()*37);
+    const col=ROUCOL(spin);
+    w.textContent=spin===0?'🟢':col==='red'?'🔴':'⚫';
+    document.getElementById('rounum').textContent=spin;
+    let won=false,mult=1,lbl='';
+    if(rouBetType==='rot'){won=col==='red';mult=2;lbl='Rot'}
+    else if(rouBetType==='schw'){won=col==='black';mult=2;lbl='Schwarz'}
+    else if(rouBetType==='ger'){won=spin>0&&spin%2===0;mult=2;lbl='Gerade'}
+    else if(rouBetType==='ung'){won=spin%2===1;mult=2;lbl='Ungerade'}
+    else if(rouBetType==='low'){won=spin>=1&&spin<=18;mult=2;lbl='1–18'}
+    else if(rouBetType==='high'){won=spin>=19&&spin<=36;mult=2;lbl='19–36'}
+    else if(rouBetType==='doz1'){won=spin>=1&&spin<=12;mult=3;lbl='1.Dutz.'}
+    else if(rouBetType==='doz2'){won=spin>=13&&spin<=24;mult=3;lbl='2.Dutz.'}
+    else if(rouBetType==='doz3'){won=spin>=25&&spin<=36;mult=3;lbl='3.Dutz.'}
+    else if(rouBetType==='num'){won=spin===rouSelNum;mult=36;lbl='Zahl '+rouSelNum}
+    if(won){const g=bet*(mult-1);sb(gp(),bal+g);sr('rour',`${spin} (${col==='green'?'Grün':col==='red'?'Rot':'Schwarz'}) — ${lbl} gewinnt! +${g} NC 🎉`,'win');addH('Roulette',spin+' '+lbl,g,true)}
+    else{sb(gp(),bal-bet);sr('rour',`${spin} (${col==='green'?'Grün':col==='red'?'Rot':'Schwarz'}) — Verloren! -${bet} NC 😢`,'lose');addH('Roulette',spin+' '+lbl,bet,false)}
+  },3100);
+}
+ld();rhist();rlb();buildRouWheel();
 </script>
-</body>
-</html>
