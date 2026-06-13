@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>Netherite Casino</title>
+
+<style>
+body{background:#111;color:#f0e8d0;font-family:monospace;margin:0}
+button{cursor:pointer}
+input,select{font-family:monospace}
+
+/* minimal styling fix */
+.res.win{color:#4caf50}
+.res.lose{color:#e53935}
+.res.push{color:#ffd700}
+</style>
+</head>
+
+<body>
+
+<div style="padding:10px;border-bottom:2px solid #333">
+  <b>⛏ Netherite Casino</b><br>
+
+  Spieler:
+  <input id="pname" oninput="updW()">
+
+  <span> | Balance: ⬛ <span id="wdis">0</span></span>
+</div>
+
+<div style="padding:10px">
+<button onclick="addAccount()">Account erstellen/laded</button>
+</div>
+
+<hr>
+
+<!-- ADMIN -->
+<div style="padding:10px">
+<h3>👑 Admin</h3>
+<input id="adminpw" placeholder="pw">
+<button onclick="login()">Login</button>
+
+<div id="admin" style="display:none;margin-top:10px">
+  <h4>Coins ändern</h4>
+
+  <input id="apl" placeholder="Player">
+  <input id="aamt" type="number" placeholder="Amount">
+
+  <select id="aact">
+    <option value="add">add</option>
+    <option value="rem">remove</option>
+    <option value="set">set</option>
+  </select>
+
+  <button onclick="adminTx()">OK</button>
+
+  <h4>Accounts</h4>
+  <div id="alist"></div>
+</div>
+</div>
+
+<hr>
+
+<div style="padding:10px">
+<button onclick="coinFlip()">Coinflip (10 bet fix)</button>
+<div id="out"></div>
+</div>
+
+<script>
+const ADMIN_PW="admin123";
+
+/* =======================
+   DATA STRUCTURE
+======================= */
+
+let players={};
+
+function now(){
+  return new Date().toLocaleString();
+}
+
+/* =======================
+   ACCOUNT SYSTEM
+======================= */
+
+function getP(name){
+  if(!players[name]){
+    players[name]={
+      bal:0,
+      createdAt:now(),
+      logs:[]
+    };
+  }
+  return players[name];
+}
+
+function getBal(name){
+  return getP(name).bal;
+}
+
+function setBal(name,val,reason="system"){
+  let p=getP(name);
+  p.bal=Math.max(0,Math.floor(val));
+
+  log(name,`BAL SET -> ${p.bal} (${reason})`);
+  save();
+  render();
+}
+
+function tx(name,delta,reason){
+  let p=getP(name);
+
+  if(Math.abs(delta)>1000000) return; // anti cheat spike
+
+  p.bal=Math.max(0,p.bal+delta);
+
+  log(name,`${delta>0?"+":""}${delta} (${reason})`);
+
+  save();
+  render();
+}
+
+/* =======================
+   LOG SYSTEM
+======================= */
+
+function log(name,msg){
+  let p=getP(name);
+  p.logs.push(`[${now()}] ${msg}`);
+}
+
+/* =======================
+   SAVE / LOAD
+======================= */
+
+function save(){
+  localStorage.setItem("nc",JSON.stringify(players));
+}
+
+function load(){
+  let d=localStorage.getItem("nc");
+  if(d)players=JSON.parse(d);
+}
+
+/* =======================
+   UI
+======================= */
+
+function gp(){
+  return document.getElementById("pname").value.trim();
+}
+
+function updW(){
+  let p=gp();
+  document.getElementById("wdis").innerText=p?getBal(p):0;
+}
+
+function render(){
+  updW();
+  if(adminOn)renderAdmin();
+}
+
+/* =======================
+   ACCOUNT CREATION
+======================= */
+
+function addAccount(){
+  let p=gp();
+  if(!p)return alert("Name eingeben");
+  getP(p);
+  save();
+  render();
+}
+
+/* =======================
+   ADMIN
+======================= */
+
+let adminOn=false;
+
+function login(){
+  if(document.getElementById("adminpw").value===ADMIN_PW){
+    adminOn=true;
+    document.getElementById("admin").style.display="block";
+    renderAdmin();
+  }
+}
+
+function adminTx(){
+  let p=document.getElementById("apl").value;
+  let amt=parseInt(document.getElementById("aamt").value);
+  let act=document.getElementById("aact").value;
+
+  if(!p||isNaN(amt))return;
+
+  if(act==="add")tx(p,amt,"admin");
+  if(act==="rem")tx(p,-amt,"admin");
+  if(act==="set")setBal(p,amt,"admin");
+
+  renderAdmin();
+}
+
+function renderAdmin(){
+  let out=document.getElementById("alist");
+  out.innerHTML="";
+
+  Object.keys(players).forEach(n=>{
+    let p=players[n];
+
+    let div=document.createElement("div");
+    div.style.border="1px solid #333";
+    div.style.margin="5px";
+    div.style.padding="5px";
+
+    div.innerHTML=`
+      <b>${n}</b><br>
+      💰 ${p.bal}<br>
+      🕒 created: ${p.createdAt}<br>
+      📜 logs: ${p.logs.length}
+      <button onclick="alert(players['${n}'].logs.join('\\n'))">view logs</button>
+    `;
+
+    out.appendChild(div);
+  });
+}
+
+/* =======================
+   GAME (COINFLIP)
+======================= */
+
+function coinFlip(){
+  let p=gp();
+  if(!p)return alert("Name fehlt");
+
+  let bet=10;
+  let win=Math.random()>0.5;
+
+  if(win){
+    tx(p,bet,"coinflip win");
+    document.getElementById("out").innerHTML="WIN +10";
+  }else{
+    tx(p,-bet,"coinflip loss");
+    document.getElementById("out").innerHTML="LOSS -10";
+  }
+}
+
+/* =======================
+   INIT
+======================= */
+
+load();
+render();
+
+</script>
+</body>
+</html>
