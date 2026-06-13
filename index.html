@@ -4,64 +4,108 @@
 <meta charset="UTF-8">
 <title>Netherite Casino</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=VT323&family=Press+Start+2P&display=swap');
-*{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#111;--sur:#1e1e1e;--sur2:#2a2a2a;--bor:#3a3a3a;--gold:#ffd700;--gold2:#c8a800;--nth:#7a6b8a;--nth2:#4a3e5a;--tx:#f0e8d0;--mu:#888;--gr:#4caf50;--re:#e53935}
-#app{font-family:'VT323',monospace;background:var(--bg);color:var(--tx);min-height:800px;border:2px solid var(--bor);font-size:18px}
-.hdr{background:var(--nth2);border-bottom:3px solid var(--gold);padding:10px 16px;display:flex;justify-content:space-between;align-items:center}
-.logo{font-family:'Press Start 2P',monospace;font-size:10px;color:var(--gold)}
-.nav button{font-family:'VT323',monospace;font-size:16px;padding:4px 11px;border:2px solid var(--bor);background:var(--sur);color:var(--mu);cursor:pointer}
-.nav button.on{background:var(--gold2);color:#000;border-color:var(--gold)}
-.wbar{background:var(--sur);border-bottom:2px solid var(--bor);padding:7px 16px;display:flex;gap:10px;align-items:center}
-.badge{background:var(--nth2);border:2px solid var(--gold);padding:3px 9px;color:var(--gold);font-size:20px}
-.btn{font-family:'VT323',monospace;font-size:18px;padding:5px 14px;background:var(--gold2);color:#000;border:2px solid var(--gold);cursor:pointer}
-.btn.gr{background:var(--gr);color:#fff;border-color:#80e080}
-.btn.re{background:var(--re);color:#fff;border-color:#ff8080}
-.ga{background:var(--sur);border:2px solid var(--bor);padding:16px;margin-bottom:14px}
-.res{border:2px solid var(--bor);padding:10px 14px;margin-top:10px;font-size:20px;text-align:center}
-.res.win{border-color:var(--gr);color:var(--gr)}
-.res.lose{border-color:var(--re);color:var(--re)}
-
-/* Bugfix: Seiten standardmäßig verstecken, außer sie haben die Klasse .on */
-.pg { display: none; }
-.pg.on { display: block; }
+body { background:#111; color:#f0e8d0; font-family:monospace; margin:0; }
+button { cursor:pointer; }
+.badge { background:#2a2a2a; border:2px solid #ffd700; padding:4px 12px; color:#ffd700; font-size:20px; }
 </style>
 
-<!-- Firebase SDKs (Kompatibilitätsmodus für Realtime Database) -->
+<!-- Firebase Realtime Database -->
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 </head>
 <body>
 
-<div id="app">
-  <!-- Header + Navigation + Balance Bar -->
-  <div class="hdr">
-    <div class="logo">⛏ NETHERITE<br>CASINO</div>
-    <div class="nav">
-      <button class="on" onclick="nav('games',this)">🎮 Games</button>
-      <button onclick="nav('lb',this)">🏆 Bestenliste</button>
-      <button onclick="nav('admin',this)">👑 Admin</button>
-    </div>
-  </div>
-  <div class="wbar">
-    <span>Spieler:</span>
-    <input type="text" id="pname" placeholder="Dein IGN..." oninput="updW()">
-    <div class="badge">⬛ <span id="wdis">0</span> NC</div>
-  </div>
+<div style="padding:10px; border-bottom:2px solid #333;">
+  <b>⛏ Netherite Casino</b><br>
+  Spieler: <input id="pname" oninput="updW()">
+  <span class="badge">⬛ <span id="wdis">0</span> NC</span>
+</div>
 
-  <!-- GAMES SECTION -->
-  <div id="pg-games" class="pg on" style="padding:14px">
-    <div id="gsel">
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:10px">
-        <div style="background:#1e1e1e;border:2px solid #3a3a3a;padding:14px;text-align:center">
-          <div style="font-size:46px">🪙</div>
-          <h3 style="color:#ffd700">Coin Flip</h3>
-          <p style="color:#888">Kopf oder Zahl? 2x Einsatz!</p>
-          <button class="btn" onclick="og('cf')">Spielen ▶</button>
-        </div>
-      </div>
-    </div>
+<button onclick="addAccount()">Account laden/erstellen</button>
+<button onclick="coinFlip()">Coinflip (10 NC)</button>
 
-    <!-- Coinflip Game -->
-    <div id="g-cf" style="display:none">
-      <button class="btn" onclick="cgKeine Antwort
+<div id="out" style="margin:20px 0; font-size:24px; min-height:40px;"></div>
+
+<script>
+// ==================== FIREBASE CONFIG ====================
+const firebaseConfig = {
+  apiKey: "AIzaSyCgtgwVCGK5d02ARp8uU1Un6LLKt7GdXBg",
+  authDomain: "minecraftcasino-a3716.firebaseapp.com",
+  databaseURL: "https://minecraftcasino-a3716-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "minecraftcasino-a3716",
+  storageBucket: "minecraftcasino-a3716.firebasestorage.app",
+  messagingSenderId: "449691718779",
+  appId: "1:449691718779:web:14fd2bc1c3e4c3c602bede"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// ==================== BALANCE FUNKTIONEN (wie Gemini) ====================
+async function getBal(name) {
+  if (!name) return 0;
+  const snapshot = await db.ref("players/" + name).once("value");
+  return snapshot.exists() ? (snapshot.val().bal || 0) : 0;
+}
+
+async function setBal(name, value) {
+  if (!name) return;
+  const bal = Math.max(0, Math.round(value));
+  await db.ref("players/" + name).set({ bal: bal });
+  updW();
+}
+
+// ==================== UI ====================
+function gp() {
+  return document.getElementById("pname").value.trim();
+}
+
+async function updW() {
+  const p = gp();
+  document.getElementById("wdis").innerText = p ? await getBal(p) : 0;
+}
+
+async function addAccount() {
+  const p = gp();
+  if (!p) return alert("Bitte Namen eingeben!");
+  
+  const current = await getBal(p);
+  if (current === 0) {
+    await setBal(p, 100); // Startguthaben
+  }
+  alert("Account bereit!");
+  updW();
+}
+
+// ==================== GAME ====================
+async function coinFlip() {
+  const p = gp();
+  if (!p) return alert("Name fehlt!");
+
+  const bet = 10;
+  const bal = await getBal(p);
+
+  if (bal < bet) {
+    document.getElementById("out").innerHTML = "❌ Nicht genug Guthaben!";
+    return;
+  }
+
+  const win = Math.random() > 0.5;
+
+  if (win) {
+    await setBal(p, bal + bet);
+    document.getElementById("out").innerHTML = `<span style="color:#4caf50">GEWONNEN! +${bet} NC 🎉</span>`;
+  } else {
+    await setBal(p, bal - bet);
+    document.getElementById("out").innerHTML = `<span style="color:#e53935">VERLOREN! -${bet} NC 😢</span>`;
+  }
+}
+
+// ==================== INIT ====================
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("%c[Realtime Database] Netherite Casino gestartet", "color:#ffd700");
+  updW();
+});
+</script>
+</body>
+</html>
